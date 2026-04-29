@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L'Ère de la Fracture</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Cinzel+Decorative:wght@400;700;900&family=Sawarabi+Mincho&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d078;
+    --blood: #8b0000;
+    --blood-light: #cc2200;
+    --void: #080808;
+    --dark: #0d0d0d;
+    --dark2: #141414;
+    --dark3: #1a1a1a;
+    --exo-blue: #1a3a5c;
+    --exo-cyan: #4dd0e1;
+    --exo-accent: #00bcd4;
+    --cult-red: #4a0000;
+    --cult-crimson: #c62828;
+    --cult-accent: #ff1744;
+    --text-light: #e8e0d0;
+    --text-muted: #9a9080;
+  }
+
+- { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+background: var(–void);
+color: var(–text-light);
+font-family: ‘Sawarabi Mincho’, serif;
+overflow-x: hidden;
+cursor: default;
+}
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image: url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 256 256’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘noise’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.9’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23noise)’ opacity=‘0.04’/%3E%3C/svg%3E”);
+pointer-events: none;
+z-index: 9999;
+opacity: 0.35;
+}
+
+/* ─── NAV ─── */
+nav {
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+z-index: 100;
+display: flex;
+justify-content: center;
+gap: 0;
+background: rgba(5,5,5,0.92);
+border-bottom: 1px solid rgba(201,168,76,0.2);
+backdrop-filter: blur(12px);
+}
+
+.nav-btn {
+padding: 18px 60px;
+font-family: ‘Cinzel Decorative’, serif;
+font-size: 0.75rem;
+letter-spacing: 0.3em;
+text-transform: uppercase;
+color: var(–text-muted);
+background: none;
+border: none;
+cursor: pointer;
+transition: all 0.3s;
+position: relative;
+text-decoration: none;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.nav-btn::after {
+content: ‘’;
+position: absolute;
+bottom: 0;
+left: 0;
+right: 0;
+height: 2px;
+transform: scaleX(0);
+transition: transform 0.3s;
+}
+
+.nav-btn.exo { }
+.nav-btn.exo::after { background: var(–exo-cyan); }
+.nav-btn.exo:hover, .nav-btn.exo.active {
+color: var(–exo-cyan);
+text-shadow: 0 0 20px rgba(77,208,225,0.5);
+}
+.nav-btn.exo:hover::after, .nav-btn.exo.active::after { transform: scaleX(1); }
+
+.nav-btn.cult::after { background: var(–cult-accent); }
+.nav-btn.cult:hover, .nav-btn.cult.active {
+color: var(–cult-accent);
+text-shadow: 0 0 20px rgba(255,23,68,0.5);
+}
+.nav-btn.cult:hover::after, .nav-btn.cult.active::after { transform: scaleX(1); }
+
+.nav-divider {
+width: 1px;
+background: rgba(201,168,76,0.15);
+margin: 12px 0;
+}
+
+/* ─── PAGES ─── */
+.page {
+display: none;
+min-height: 100vh;
+padding-top: 60px;
+}
+.page.active { display: block; }
+
+/* ─── HERO ─── */
+.hero {
+position: relative;
+height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+text-align: center;
+overflow: hidden;
+}
+
+.hero-bg-exo {
+position: absolute;
+inset: 0;
+background:
+radial-gradient(ellipse 80% 60% at 50% 40%, rgba(26,58,92,0.6) 0%, transparent 70%),
+radial-gradient(ellipse 40% 40% at 80% 20%, rgba(77,208,225,0.08) 0%, transparent 60%),
+linear-gradient(180deg, #04080f 0%, #000810 60%, #000408 100%);
+}
+
+.hero-bg-cult {
+position: absolute;
+inset: 0;
+background:
+radial-gradient(ellipse 80% 60% at 50% 40%, rgba(74,0,0,0.7) 0%, transparent 70%),
+radial-gradient(ellipse 40% 40% at 20% 20%, rgba(198,40,40,0.1) 0%, transparent 60%),
+linear-gradient(180deg, #0d0000 0%, #060000 60%, #080000 100%);
+}
+
+/* Floating kanji */
+.kanji-bg {
+position: absolute;
+inset: 0;
+pointer-events: none;
+overflow: hidden;
+}
+
+.kanji-char {
+position: absolute;
+font-family: ‘Noto Serif JP’, serif;
+font-weight: 900;
+opacity: 0.03;
+animation: floatKanji linear infinite;
+}
+
+@keyframes floatKanji {
+0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+10% { opacity: 0.04; }
+90% { opacity: 0.04; }
+100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+}
+
+/* Scan lines */
+.scanlines {
+position: absolute;
+inset: 0;
+background: repeating-linear-gradient(
+0deg,
+transparent,
+transparent 2px,
+rgba(0,0,0,0.08) 2px,
+rgba(0,0,0,0.08) 4px
+);
+pointer-events: none;
+}
+
+.hero-era {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: clamp(0.6rem, 1.5vw, 0.85rem);
+letter-spacing: 0.5em;
+color: var(–gold);
+margin-bottom: 20px;
+opacity: 0;
+animation: fadeUp 1s 0.3s forwards;
+}
+
+.hero-title {
+font-family: ‘Cinzel Decorative’, serif;
+font-size: clamp(2.5rem, 7vw, 6rem);
+font-weight: 900;
+line-height: 1;
+margin-bottom: 16px;
+opacity: 0;
+animation: fadeUp 1s 0.5s forwards;
+}
+
+.hero-title.exo-title {
+background: linear-gradient(135deg, #ffffff 0%, var(–exo-cyan) 50%, #ffffff 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+filter: drop-shadow(0 0 40px rgba(77,208,225,0.3));
+}
+
+.hero-title.cult-title {
+background: linear-gradient(135deg, #ffffff 0%, var(–cult-accent) 50%, #8b0000 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+filter: drop-shadow(0 0 40px rgba(255,23,68,0.4));
+}
+
+.hero-subtitle {
+font-family: ‘Sawarabi Mincho’, serif;
+font-size: clamp(0.9rem, 2vw, 1.1rem);
+color: var(–text-muted);
+letter-spacing: 0.15em;
+max-width: 600px;
+line-height: 1.8;
+opacity: 0;
+animation: fadeUp 1s 0.7s forwards;
+padding: 0 20px;
+}
+
+.hero-line {
+width: 120px;
+height: 1px;
+margin: 28px auto;
+opacity: 0;
+animation: fadeUp 1s 0.9s forwards;
+}
+
+.exo-line { background: linear-gradient(90deg, transparent, var(–exo-cyan), transparent); }
+.cult-line { background: linear-gradient(90deg, transparent, var(–cult-accent), transparent); }
+
+.hero-scroll {
+position: absolute;
+bottom: 40px;
+left: 50%;
+transform: translateX(-50%);
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 8px;
+opacity: 0;
+animation: fadeIn 1s 1.5s forwards;
+}
+
+.scroll-line {
+width: 1px;
+height: 50px;
+animation: scrollPulse 2s ease-in-out infinite;
+}
+
+.exo-scroll-line { background: linear-gradient(180deg, var(–exo-cyan), transparent); }
+.cult-scroll-line { background: linear-gradient(180deg, var(–cult-accent), transparent); }
+
+@keyframes scrollPulse {
+0%, 100% { opacity: 0.3; transform: scaleY(1); }
+50% { opacity: 1; transform: scaleY(1.2); }
+}
+
+/* ─── DOCTRINE ─── */
+.doctrine-section {
+padding: 100px 20px;
+max-width: 900px;
+margin: 0 auto;
+}
+
+.section-label {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 0.7rem;
+letter-spacing: 0.5em;
+margin-bottom: 12px;
+}
+
+.exo-section .section-label { color: var(–exo-accent); }
+.cult-section .section-label { color: var(–cult-accent); }
+
+.section-title {
+font-family: ‘Cinzel Decorative’, serif;
+font-size: clamp(1.8rem, 4vw, 3rem);
+font-weight: 700;
+margin-bottom: 30px;
+line-height: 1.2;
+}
+
+.doctrine-text {
+font-size: 1.05rem;
+line-height: 2;
+color: rgba(232,224,208,0.8);
+border-left: 2px solid;
+padding-left: 24px;
+margin-bottom: 40px;
+}
+
+.exo-section .doctrine-text { border-color: var(–exo-cyan); }
+.cult-section .doctrine-text { border-color: var(–cult-accent); }
+
+/* ─── CLAN CARDS ─── */
+.clans-grid {
+padding: 0 20px 120px;
+max-width: 1200px;
+margin: 0 auto;
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+gap: 24px;
+}
+
+.clan-card {
+position: relative;
+background: var(–dark2);
+border: 1px solid rgba(255,255,255,0.06);
+overflow: hidden;
+transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s;
+}
+
+.clan-card:hover {
+transform: translateY(-6px);
+}
+
+.exo-card:hover { box-shadow: 0 20px 60px rgba(77,208,225,0.15), 0 0 0 1px rgba(77,208,225,0.2); }
+.cult-card:hover { box-shadow: 0 20px 60px rgba(255,23,68,0.15), 0 0 0 1px rgba(255,23,68,0.2); }
+
+.card-top-bar {
+height: 3px;
+width: 100%;
+}
+
+.exo-bar { background: linear-gradient(90deg, var(–exo-blue), var(–exo-cyan), var(–exo-blue)); }
+.cult-bar { background: linear-gradient(90deg, var(–cult-red), var(–cult-accent), var(–cult-red)); }
+
+.card-inner {
+padding: 32px;
+}
+
+.card-icon {
+font-size: 2.2rem;
+margin-bottom: 16px;
+display: block;
+line-height: 1;
+}
+
+.card-name {
+font-family: ‘Cinzel Decorative’, serif;
+font-size: 1.25rem;
+font-weight: 700;
+margin-bottom: 4px;
+letter-spacing: 0.05em;
+}
+
+.exo-card .card-name { color: #e8f4f8; }
+.cult-card .card-name { color: #ffd0d0; }
+
+.card-subtitle {
+font-size: 0.72rem;
+letter-spacing: 0.3em;
+text-transform: uppercase;
+margin-bottom: 20px;
+font-family: ‘Bebas Neue’, sans-serif;
+}
+
+.exo-card .card-subtitle { color: var(–exo-accent); }
+.cult-card .card-subtitle { color: var(–cult-accent); }
+
+.card-divider {
+height: 1px;
+margin: 20px 0;
+background: rgba(255,255,255,0.05);
+}
+
+.card-desc {
+font-size: 0.92rem;
+line-height: 1.9;
+color: rgba(232,224,208,0.7);
+margin-bottom: 20px;
+}
+
+.card-tag {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+font-size: 0.7rem;
+letter-spacing: 0.2em;
+text-transform: uppercase;
+padding: 6px 14px;
+border: 1px solid;
+font-family: ‘Bebas Neue’, sans-serif;
+margin-bottom: 8px;
+margin-right: 8px;
+}
+
+.exo-card .card-tag { border-color: rgba(77,208,225,0.3); color: var(–exo-cyan); }
+.cult-card .card-tag { border-color: rgba(255,23,68,0.3); color: var(–cult-accent); }
+
+.card-detail {
+font-size: 0.88rem;
+line-height: 1.8;
+color: rgba(232,224,208,0.6);
+padding: 16px;
+border-left: 2px solid;
+background: rgba(255,255,255,0.02);
+margin-top: 16px;
+}
+
+.exo-card .card-detail { border-color: rgba(77,208,225,0.4); }
+.cult-card .card-detail { border-color: rgba(255,23,68,0.4); }
+
+.detail-label {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 0.65rem;
+letter-spacing: 0.35em;
+text-transform: uppercase;
+margin-bottom: 6px;
+display: block;
+}
+
+.exo-card .detail-label { color: var(–exo-accent); }
+.cult-card .detail-label { color: var(–cult-accent); }
+
+/* ─── ENJEUX SECTION ─── */
+.stakes-section {
+padding: 80px 20px 120px;
+max-width: 1000px;
+margin: 0 auto;
+}
+
+.stakes-title {
+font-family: ‘Cinzel Decorative’, serif;
+font-size: clamp(1.4rem, 3vw, 2rem);
+color: var(–gold);
+text-align: center;
+margin-bottom: 60px;
+letter-spacing: 0.1em;
+}
+
+.stakes-title::before, .stakes-title::after {
+content: ‘——’;
+margin: 0 16px;
+color: var(–gold-light);
+opacity: 0.4;
+}
+
+.stakes-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+gap: 20px;
+}
+
+.stake-item {
+padding: 28px;
+background: var(–dark2);
+border: 1px solid rgba(201,168,76,0.1);
+position: relative;
+transition: border-color 0.3s;
+}
+
+.stake-item:hover { border-color: rgba(201,168,76,0.3); }
+
+.stake-num {
+font-family: ‘Bebas Neue’, sans-serif;
+font-size: 3rem;
+color: rgba(201,168,76,0.1);
+position: absolute;
+top: 12px;
+right: 16px;
+line-height: 1;
+}
+
+.stake-title {
+font-family: ‘Cinzel Decorative’, serif;
+font-size: 0.9rem;
+color: var(–gold);
+margin-bottom: 12px;
+letter-spacing: 0.05em;
+}
+
+.stake-text {
+font-size: 0.88rem;
+line-height: 1.9;
+color: rgba(232,224,208,0.6);
+}
+
+/* ─── CONTEXT BANNER ─── */
+.context-banner {
+padding: 80px 20px;
+text-align: center;
+position: relative;
+overflow: hidden;
+}
+
+.context-banner::before {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: linear-gradient(180deg, transparent, rgba(201,168,76,0.03), transparent);
+}
+
+.banner-title {
+font-family: ‘Cinzel Decorative’, serif;
+font-size: clamp(1.6rem, 4vw, 2.8rem);
+font-weight: 900;
+background: linear-gradient(135deg, var(–gold-light), var(–gold), var(–gold-light));
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+margin-bottom: 20px;
+letter-spacing: 0.05em;
+}
+
+.banner-text {
+max-width: 700px;
+margin: 0 auto;
+font-size: 1rem;
+line-height: 2;
+color: rgba(232,224,208,0.65);
+}
+
+/* ─── PAGE SEPARATOR ─── */
+.page-sep {
+width: 100%;
+height: 1px;
+background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+margin: 0;
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(30px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+from { opacity: 0; }
+to { opacity: 1; }
+}
+
+/* scroll-reveal */
+.reveal {
+opacity: 0;
+transform: translateY(40px);
+transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+opacity: 1;
+transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ─── SEAL DECORATION ─── */
+.seal {
+width: 80px;
+height: 80px;
+margin: 0 auto 30px;
+position: relative;
+opacity: 0;
+animation: fadeIn 1s 1s forwards;
+}
+
+.seal svg {
+width: 100%;
+height: 100%;
+animation: rotateSeal 20s linear infinite;
+}
+
+@keyframes rotateSeal {
+from { transform: rotate(0deg); }
+to { transform: rotate(360deg); }
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 600px) {
+.nav-btn { padding: 16px 24px; font-size: 0.65rem; letter-spacing: 0.2em; }
+.clans-grid { grid-template-columns: 1fr; }
+}
+
+/* Background pulse for exo page */
+.page-exo { background: radial-gradient(ellipse 100% 50% at 50% 0%, rgba(0,18,40,0.5) 0%, var(–void) 60%); }
+.page-cult { background: radial-gradient(ellipse 100% 50% at 50% 0%, rgba(30,0,0,0.5) 0%, var(–void) 60%); }
+
+/* glow pulse */
+.glow-exo { animation: glowPulseExo 4s ease-in-out infinite; }
+.glow-cult { animation: glowPulseCult 4s ease-in-out infinite; }
+
+@keyframes glowPulseExo {
+0%, 100% { filter: drop-shadow(0 0 8px rgba(77,208,225,0.2)); }
+50% { filter: drop-shadow(0 0 20px rgba(77,208,225,0.5)); }
+}
+
+@keyframes glowPulseCult {
+0%, 100% { filter: drop-shadow(0 0 8px rgba(255,23,68,0.2)); }
+50% { filter: drop-shadow(0 0 20px rgba(255,23,68,0.5)); }
+}
+</style>
+
+</head>
+<body>
+
+<!-- NAV -->
+
+<nav>
+  <button class="nav-btn exo active" onclick="showPage('exo')">
+    🛡️ Alliance des Exorcistes
+  </button>
+  <div class="nav-divider"></div>
+  <button class="nav-btn cult" onclick="showPage('cult')">
+    🌑 Le Culte
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════ -->
+
+<!-- PAGE EXORCISTES -->
+
+<!-- ══════════════════════════════════════════ -->
+
+<div id="page-exo" class="page page-exo active">
+
+  <!-- HERO -->
+
+  <section class="hero">
+    <div class="hero-bg-exo"></div>
+    <div class="scanlines"></div>
+    <div class="kanji-bg" id="kanji-exo"></div>
+
+```
+<div style="position:relative; z-index:2;">
+  <div class="seal glow-exo">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="46" stroke="rgba(77,208,225,0.4)" stroke-width="1"/>
+      <circle cx="50" cy="50" r="38" stroke="rgba(77,208,225,0.2)" stroke-width="1" stroke-dasharray="4 4"/>
+      <polygon points="50,10 90,74 10,74" stroke="rgba(77,208,225,0.5)" stroke-width="1.5" fill="none"/>
+      <polygon points="50,90 10,26 90,26" stroke="rgba(77,208,225,0.3)" stroke-width="1" fill="none"/>
+      <circle cx="50" cy="50" r="5" fill="rgba(77,208,225,0.6)"/>
+    </svg>
+  </div>
+  <div class="hero-era">◈ L'ÈRE DE LA FRACTURE ◈</div>
+  <h1 class="hero-title exo-title">Alliance des<br>Exorcistes</h1>
+  <div class="hero-line exo-line"></div>
+  <p class="hero-subtitle">Les derniers remparts d'une humanité jugée "singe" par leurs ennemis — ils luttent pour protéger ceux qui ne peuvent pas se défendre.</p>
+</div>
+
+<div class="hero-scroll">
+  <div class="scroll-line exo-scroll-line"></div>
+</div>
+```
+
+  </section>
+
+  <!-- DOCTRINE -->
+
+  <section class="doctrine-section exo-section reveal">
+    <div class="section-label">◈ DOCTRINE ◈</div>
+    <h2 class="section-title" style="color: var(--exo-cyan);">Les Protecteurs</h2>
+    <p class="doctrine-text">
+      L'Alliance des Exorcistes représente la dernière ligne de défense d'une humanité assiégée. Leur mission est absolue : maintenir l'ordre, repousser le chaos, et protéger ceux que le Culte considère comme inférieurs. Leur force repose sur les grandes lignées, dont la puissance combinée constitue un bouclier que même les suprématistes n'osent pas défier frontalement.
+    </p>
+  </section>
+
+  <!-- CLANS -->
+
+  <div class="clans-grid">
+
+```
+<!-- GOJO -->
+<div class="clan-card exo-card reveal reveal-delay-1">
+  <div class="card-top-bar exo-bar"></div>
+  <div class="card-inner">
+    <span class="card-icon">♾️</span>
+    <div class="card-name">Clan Gojo</div>
+    <div class="card-subtitle">Le Bouclier de l'Humanité</div>
+    <div class="card-divider"></div>
+    <p class="card-desc">Toujours au sommet de la pyramide, porté par l'aura de l'indétrônable Satoru Gojo. Tant que Satoru existe, le Culte ne peut pas lancer d'attaque frontale totale sur l'Alliance.</p>
+    <div>
+      <span class="card-tag">⚡ Infini</span>
+      <span class="card-tag">👁 Six Yeux</span>
+    </div>
+    <div class="card-detail">
+      <span class="detail-label">⚠ Enjeu Critique</span>
+      Le Culte cherche désespérément un moyen de sceller ou d'occuper Satoru Gojo pour frapper l'Alliance là où elle est la plus vulnérable.
+    </div>
+  </div>
+</div>
+
+<!-- ZENIN -->
+<div class="clan-card exo-card reveal reveal-delay-2">
+  <div class="card-top-bar exo-bar"></div>
+  <div class="card-inner">
+    <span class="card-icon">⛓️</span>
+    <div class="card-name">Clan Zenin</div>
+    <div class="card-subtitle">La Résurrection du Fer</div>
+    <div class="card-divider"></div>
+    <p class="card-desc">Un clan en pleine reconstruction, rongé par la frustration d'une gloire passée et d'une perte irréparable. Toji Zenin — un homme sans énergie occulte — a mis le monde entier à genoux avant de devenir légende.</p>
+    <div>
+      <span class="card-tag">⚔ Taijutsu</span>
+      <span class="card-tag">💀 Héritage</span>
+    </div>
+    <div class="card-detail">
+      <span class="detail-label">🎯 Objectif Primaire</span>
+      Récupérer l'arsenal complet de Toji Zenin, actuellement détenu par le Clan Kuryu. Pour les Zenin, c'est une question d'honneur et de survie tactique.
+    </div>
+  </div>
+</div>
+
+<!-- INUMAKI -->
+<div class="clan-card exo-card reveal reveal-delay-3">
+  <div class="card-top-bar exo-bar"></div>
+  <div class="card-inner">
+    <span class="card-icon">💰</span>
+    <div class="card-name">Clan Inumaki</div>
+    <div class="card-subtitle">Les Rois d'Or</div>
+    <div class="card-divider"></div>
+    <p class="card-desc">La famille la plus riche et la plus influente du Japon. Leur Incantation Diffuse — le pouvoir absolu de la voix — est respectée par tous sans exception. Un mot d'un Inumaki peut ruiner une économie ou stopper un cœur.</p>
+    <div>
+      <span class="card-tag">🗣 Cursed Speech</span>
+      <span class="card-tag">🏦 Financement</span>
+    </div>
+    <div class="card-detail">
+      <span class="detail-label">🌐 Rôle Stratégique</span>
+      Ils financent l'effort de guerre des exorcistes et utilisent leur richesse pour sceller des zones entières contre les fléaux. Le Culte vise leur destruction pour couper les vivres à l'Alliance.
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <div class="page-sep"></div>
+
+  <!-- ENJEUX SECTION -->
+
+  <section class="stakes-section reveal">
+    <h2 class="stakes-title">Enjeux du Conflit</h2>
+    <div class="stakes-grid">
+      <div class="stake-item reveal reveal-delay-1">
+        <div class="stake-num">01</div>
+        <div class="stake-title">La Guerre Froide des Armes</div>
+        <p class="stake-text">La tension entre les Zenin et les Kuryu est à son comble. Une mission d'infiltration pour voler l'Inventaire Caché de Toji pourrait déclencher une guerre totale et irréversible.</p>
+      </div>
+      <div class="stake-item reveal reveal-delay-2">
+        <div class="stake-num">02</div>
+        <div class="stake-title">Le Plan d'Extermination</div>
+        <p class="stake-text">Le Culte prépare un rituel de grande envergure pour libérer une vague d'énergie occulte sur une métropole entière. Les civils seront forcés de soit mourir, soit s'éveiller.</p>
+      </div>
+      <div class="stake-item reveal reveal-delay-3">
+        <div class="stake-num">03</div>
+        <div class="stake-title">L'Équilibre Gojo</div>
+        <p class="stake-text">Si Satoru Gojo est scellé ou neutralisé, l'Alliance perd son ultime deterrant. Le Culte cherche la faille dans l'armure du plus grand sorcier de l'ère moderne.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ══════════════════════════════════════════ -->
+
+<!-- PAGE CULTE -->
+
+<!-- ══════════════════════════════════════════ -->
+
+<div id="page-cult" class="page page-cult">
+
+  <!-- HERO -->
+
+  <section class="hero">
+    <div class="hero-bg-cult"></div>
+    <div class="scanlines"></div>
+    <div class="kanji-bg" id="kanji-cult"></div>
+
+```
+<div style="position:relative; z-index:2;">
+  <div class="seal glow-cult">
+    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="46" stroke="rgba(255,23,68,0.4)" stroke-width="1"/>
+      <circle cx="50" cy="50" r="38" stroke="rgba(255,23,68,0.2)" stroke-width="1" stroke-dasharray="4 4"/>
+      <polygon points="50,8 93,71 7,71" stroke="rgba(255,23,68,0.5)" stroke-width="1.5" fill="none"/>
+      <line x1="50" y1="8" x2="50" y2="92" stroke="rgba(255,23,68,0.2)" stroke-width="1"/>
+      <line x1="7" y1="71" x2="93" y2="71" stroke="rgba(255,23,68,0.2)" stroke-width="1"/>
+      <circle cx="50" cy="50" r="5" fill="rgba(255,23,68,0.6)"/>
+      <circle cx="50" cy="50" r="2" fill="rgba(255,80,80,1)"/>
+    </svg>
+  </div>
+  <div class="hero-era">☽ L'ÉVOLUTION PAR LE CHAOS ☽</div>
+  <h1 class="hero-title cult-title">La Coalition<br>du Culte</h1>
+  <div class="hero-line cult-line"></div>
+  <p class="hero-subtitle">Les Suprématistes de l'énergie occulte — héritiers du chaos, architectes d'un monde où seuls les puissants ont le droit d'exister.</p>
+</div>
+
+<div class="hero-scroll">
+  <div class="scroll-line cult-scroll-line"></div>
+</div>
+```
+
+  </section>
+
+  <!-- DOCTRINE -->
+
+  <section class="doctrine-section cult-section reveal">
+    <div class="section-label">☽ DOCTRINE ☽</div>
+    <h2 class="section-title" style="color: var(--cult-accent);">L'Évolution par le Chaos</h2>
+    <p class="doctrine-text">
+      La doctrine du Culte est d'une clarté brutale : l'humanité stagne. Seul le chaos peut forcer l'évolution. En extermiant les non-exorcistes, ils entendent purifier l'espèce — créer un monde où fléaux et sorciers coexistent dans une hiérarchie absolue de puissance. Les faibles n'ont pas leur place dans ce monde à venir.
+    </p>
+  </section>
+
+  <!-- CLANS -->
+
+  <div class="clans-grid">
+
+```
+<!-- KURYU -->
+<div class="clan-card cult-card reveal reveal-delay-1">
+  <div class="card-top-bar cult-bar"></div>
+  <div class="card-inner">
+    <span class="card-icon">🐉</span>
+    <div class="card-name">Clan Kuryu</div>
+    <div class="card-subtitle">Les Descendants du Dragon</div>
+    <div class="card-divider"></div>
+    <p class="card-desc">Héritiers directs de la volonté de Suguru Geto. Ils voient l'énergie occulte comme une forme de noblesse draconique — un droit de naissance qui justifie leur suprématie absolue sur les faibles.</p>
+    <div>
+      <span class="card-tag">🐲 Fléaux Rang S</span>
+      <span class="card-tag">🗡 Arsenal Toji</span>
+    </div>
+    <div class="card-detail">
+      <span class="detail-label">💎 Trésor des Ombres</span>
+      Ils détiennent l'arsenal complet de Toji Zenin. Ils refusent de le rendre, considérant que ces armes "divines" ne doivent pas rester entre les mains de ceux qui protègent les faibles.
+    </div>
+  </div>
+</div>
+
+<!-- TENKO -->
+<div class="clan-card cult-card reveal reveal-delay-2">
+  <div class="card-top-bar cult-bar"></div>
+  <div class="card-inner">
+    <span class="card-icon">🌑</span>
+    <div class="card-name">Clan Tenko</div>
+    <div class="card-subtitle">Les Ombres de Geto</div>
+    <div class="card-divider"></div>
+    <p class="card-desc">La branche noire de la descendance de Geto. Si les Kuryu sont les leaders idéologiques, les Tenko sont leurs lames dans l'obscurité — les exécuteurs impitoyables de la doctrine suprématiste.</p>
+    <div>
+      <span class="card-tag">🩸 Pactes Sacrificiels</span>
+      <span class="card-tag">🕶 Infiltration</span>
+    </div>
+    <div class="card-detail">
+      <span class="detail-label">⚡ Philosophie des Fléaux</span>
+      Contrairement aux autres clans, les Tenko voient les fléaux comme des alliés naturels et non comme des outils. Une vision qui les rend d'autant plus dangereuses.
+    </div>
+  </div>
+</div>
+
+<!-- KAMO -->
+<div class="clan-card cult-card reveal reveal-delay-3">
+  <div class="card-top-bar cult-bar"></div>
+  <div class="card-inner">
+    <span class="card-icon">🩸</span>
+    <div class="card-name">Clan Kamo</div>
+    <div class="card-subtitle">Les Traîtres de Sang</div>
+    <div class="card-divider"></div>
+    <p class="card-desc">Anciennement l'une des trois grandes familles exorcistes, ils ont trahi l'école d'exorcisme pour rejoindre le Culte. Convaincus que le sang pur ne doit couler que pour les sorciers, ils ont choisi la suprématie.</p>
+    <div>
+      <span class="card-tag">💉 Manipulation du Sang</span>
+      <span class="card-tag">⚠ Traîtres</span>
+    </div>
+    <div class="card-detail">
+      <span class="detail-label">🗡 La Trahison</span>
+      Leur défection a représenté un coup stratégique majeur pour le Culte — non seulement pour leur puissance occulte, mais pour les secrets des grandes familles qu'ils ont emportés avec eux.
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <div class="page-sep"></div>
+
+  <!-- CONTEXT BANNER -->
+
+  <section class="context-banner reveal">
+    <h2 class="banner-title">🌑 La Grande Purge</h2>
+    <p class="banner-text">
+      Depuis cet événement fondateur, le monde ne se cache plus derrière des voiles. La société a été brisée en deux blocs idéologiques irréconciliables. Le Culte n'est pas une organisation — c'est une conviction. Une certitude que l'humanité ordinaire a fait son temps.
+    </p>
+  </section>
+
+  <section class="stakes-section reveal">
+    <h2 class="stakes-title">Plans du Culte</h2>
+    <div class="stakes-grid">
+      <div class="stake-item reveal reveal-delay-1">
+        <div class="stake-num">I</div>
+        <div class="stake-title">Voler l'Inventaire Caché</div>
+        <p class="stake-text">Les Kuryu protègent l'arsenal de Toji comme une relique sacrée. Si les exorcistes tentent de le récupérer, cela déclenchera une guerre totale — exactement ce que le Culte désire.</p>
+      </div>
+      <div class="stake-item reveal reveal-delay-2">
+        <div class="stake-num">II</div>
+        <div class="stake-title">Le Rituel d'Éveil</div>
+        <p class="stake-text">Un rituel de grande envergure pour inonder une métropole d'énergie maudite. Ceux qui survivront seront des sorciers. Les autres auront simplement prouvé leur infériorité.</p>
+      </div>
+      <div class="stake-item reveal reveal-delay-3">
+        <div class="stake-num">III</div>
+        <div class="stake-title">Neutraliser Gojo</div>
+        <p class="stake-text">Tant que Satoru Gojo respire, une attaque frontale totale est impossible. Le Culte cherche depuis des années la méthode pour sceller ou distraire l'homme qui seul équivaut à une armée entière.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // ─── PAGE SWITCH ───
+  function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    document.querySelector('.nav-btn.' + page).classList.add('active');
+
+    // Re-trigger animations
+    document.querySelectorAll('#page-' + page + ' .reveal').forEach(el => {
+      el.classList.remove('visible');
+      setTimeout(() => checkReveal(), 100);
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ─── SCROLL REVEAL ───
+  function checkReveal() {
+    const reveals = document.querySelectorAll('.page.active .reveal');
+    reveals.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.88) {
+        el.classList.add('visible');
+      }
+    });
+  }
+
+  window.addEventListener('scroll', checkReveal);
+  setTimeout(checkReveal, 200);
+
+  // ─── FLOATING KANJI ───
+  const kanjis = ['呪', '術', '廻', '戦', '滅', '霊', '縛', '解', '蒼', '赫', '紫', '無', '極', '限', '力', '道', '血', '魂', '破', '天'];
+
+  function spawnKanji(containerId, color) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const el = document.createElement('div');
+    el.className = 'kanji-char';
+    el.textContent = kanjis[Math.floor(Math.random() * kanjis.length)];
+    el.style.left = Math.random() * 100 + '%';
+    el.style.fontSize = (Math.random() * 80 + 40) + 'px';
+    el.style.color = color;
+    el.style.animationDuration = (Math.random() * 15 + 10) + 's';
+    el.style.animationDelay = (Math.random() * 5) + 's';
+    container.appendChild(el);
+
+    setTimeout(() => el.remove(), 30000);
+  }
+
+  setInterval(() => {
+    if (document.getElementById('page-exo').classList.contains('active')) {
+      spawnKanji('kanji-exo', '#4dd0e1');
+    } else {
+      spawnKanji('kanji-cult', '#ff1744');
+    }
+  }, 2500);
+
+  // Initial spawn
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => spawnKanji('kanji-exo', '#4dd0e1'), i * 500);
+    setTimeout(() => spawnKanji('kanji-cult', '#ff1744'), i * 500);
+  }
+</script>
+
+</body>
+</html>
